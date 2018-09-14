@@ -34,8 +34,8 @@ public class CoolWeatherDB {
 	/**
 	 * »ñÈ¡CoolWeatherDBÊµÀý
 	 */
-	private synchronized static CoolWeatherDB getInstance(Context context) {
-		if (coolWeatherDB != null) {
+	public synchronized static CoolWeatherDB getInstance(Context context) {
+		if (coolWeatherDB == null) {
 			coolWeatherDB = new CoolWeatherDB(context);
 		}
 		return coolWeatherDB;
@@ -54,25 +54,21 @@ public class CoolWeatherDB {
 	}
 
 	public List<Province> loadProvinces() {
-		List<Province> allProvinces = new ArrayList<Province>();
-		Province province = new Province();
-		if (allProvinces != null) {
-			Cursor cursor = db.query("Province", null, null, null, null, null, null);
-			if (cursor.moveToFirst()) {
-				do {
-					province.setId(cursor.getInt(cursor.getColumnIndex("id")));
-					province.setProvinceCode(cursor.getString(cursor
-							.getColumnIndex("province_code")));
-					province.setProvinceName(cursor.getString(cursor
-							.getColumnIndex("province_name")));
-					allProvinces.add(province);
-				} while (cursor.moveToNext());
-			}
-			if (cursor != null) {
-				cursor.close();
-			}
+		List<Province> list = new ArrayList<Province>();
+		Cursor cursor = db.query("Province", null, null, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			do {
+				Province province = new Province();
+				province.setId(cursor.getInt(cursor.getColumnIndex("id")));
+				province.setProvinceCode(cursor.getString(cursor.getColumnIndex("province_code")));
+				province.setProvinceName(cursor.getString(cursor.getColumnIndex("province_name")));
+				list.add(province);
+			} while (cursor.moveToNext());
 		}
-		return allProvinces;
+		if (cursor != null) {
+			cursor.close();
+		}
+		return list;
 	}
 
 	public void saveCity(City city) {
@@ -87,7 +83,7 @@ public class CoolWeatherDB {
 
 	public List<City> loadCities(int provinceID) {
 		List<City> allCities = new ArrayList<City>();
-		Cursor cursor = db.query("City", null, "province_id = ?",
+		Cursor cursor = db.query("City", null, "provinceID = ?",
 				new String[] { String.valueOf(provinceID) }, null, null, null);
 		if (cursor.moveToFirst()) {
 			do {
@@ -111,12 +107,13 @@ public class CoolWeatherDB {
 			values.put("county_code", county.getCountyCode());
 			values.put("county_name", county.getCountyName());
 			values.put("cityID", county.getCityID());
+			db.insert("County", null, values);
 		}
 	}
 
 	public List<County> loadCounties(int countyID) {
 		List<County> allCounties = new ArrayList<County>();
-		Cursor cursor = db.query("City", null, "cityID = ?",
+		Cursor cursor = db.query("County", null, "cityID = ?",
 				new String[] { String.valueOf(countyID) }, null, null, null);
 		if (cursor.moveToFirst()) {
 			do {
